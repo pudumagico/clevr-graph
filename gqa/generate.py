@@ -31,14 +31,14 @@ if __name__ == "__main__":
 	else:
 		name = uuid.uuid4()
 
-	total_gqa = args.count * 1000
+	total_gqa = args.count
 	if args.just_one:
 		total_gqa = 1
 
 	filename = f"./data/gqa-{name}.yaml"
 	logger.info(f"Generating {total_gqa} (G,Q,A) tuples into {filename}")
 
-	os.makedirs("./data", exist_ok=True)
+	os.makedirs("./data/train", exist_ok=True)
 
 	def type_matches(form):
 
@@ -78,6 +78,8 @@ if __name__ == "__main__":
 						graph = GraphGenerator(args)
 						graph.generate()
 						g = graph.graph_spec
+						# print(g.id)
+						# break
 						logger.debug("Generated graph")
 
 						if len(g.nodes) == 0 or len(g.edges) == 0:
@@ -105,7 +107,7 @@ if __name__ == "__main__":
 								logger.debug(f"Question: '{q}', answer: '{a}'")
 
 								if args.draw:
-									graph.draw(os.path.join("data", f"graph-{i}.png"))
+									graph.draw(os.path.join("data/train/", f"graph-{g.id}.png"))
 
 								if args.omit_graph:
 									yield DocumentSpec(None,q,a).stripped()

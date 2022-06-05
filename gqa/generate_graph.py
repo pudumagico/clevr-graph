@@ -6,20 +6,25 @@ import scipy
 from sklearn.neighbors import KDTree
 import networkx as nx
 import bezier
-import gibberish
+from gibberish import Gibberish
 import logging
 from collections import OrderedDict, Counter
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
+gibberish = Gibberish()
+
 from .types import GraphSpec, NodeSpec, EdgeSpec, LineSpec
 from .args import *
 
 LineProperties = {
 	"has_aircon": [True, False],
-	"color": ['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'olive', 'cyan'],
-	"stroke": ["solid" , "dashed", "dashdot", "dotted"],
+	# "color": ['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'olive', 'cyan'],
+	"color": ['blue', 'orange', 'green', 'red', 'purple', 'brown'],
+	# "stroke": ["solid" , "dashed", "dashdot", "dotted"],
+	# "stroke": ["solid" , "dashed", "dashdot", "dotted"],
+	"stroke": ["solid"],
 	"built": ["50s", "60s", "70s", "80s", "90s", "00s", "recent"],
 }
 
@@ -79,6 +84,7 @@ def gen_n(base, noise = 0.2):
 	return round(random.gauss(base, noise*base))
 
 def add_noise(base, noise=0.05):
+	return base
 	return base * (1 - noise + random.random() * noise*2)
 
 
@@ -321,13 +327,19 @@ class GraphGenerator(object):
 		except:
 			pass
 
-		fig, ax = plt.subplots(figsize=(30, 30))
+		fig, ax = plt.subplots(figsize=(10, 10))
+		fig.tight_layout(pad=0)
+		fig.subplots_adjust(top=1,bottom=0,left=0,right=1)
+		plt.xlim([-3, 3])
+		plt.ylim([-3, 3])
+		# plt.axis('off')
+		ax.set_axis_off()
+		ax.tick_params(axis="both",direction="in", pad=-50)
 
 		lines_per_station = Counter()
 		for line, stations in self.line_stations.items():
 			for station in stations:
 				lines_per_station[station] += 1
-
 
 		for line, stations in self.line_stations.items():
 			xs = [i.p["x"] for i in stations]
@@ -335,19 +347,20 @@ class GraphGenerator(object):
 			ts = [i.p["name"] for i in stations]
 			ls = line.p["stroke"]
 			c = 'tab:'+line.p["color"]
-			ax.plot(xs, ys, color=c, marker='.', ls=ls, lw=4, markersize=16)
+			ax.plot(xs, ys, color=c, marker='.', ls=ls, lw=4, markersize=32)
 
 			inter_xs = [i.p["x"] for i in stations if lines_per_station[i] > 1]
 			inter_ys = [i.p["y"] for i in stations if lines_per_station[i] > 1]
-			ax.plot(inter_xs, inter_ys, color='grey', marker='s', ls='', markersize=10)
+			ax.plot(inter_xs, inter_ys, color='grey', marker='s', ls='', markersize=20)
 
 			for i in stations:
-				ax.annotate(i.p["name"], i.pt)
-
-
+				# text_coord = i.pt + (0.005,0.005)
+				# print(text_coord)
+				ax.annotate(i.p["name"], i.pt, fontsize=15)
 
 		with open(filename, 'wb') as file:
-			plt.savefig(file) 
+			plt.savefig(file, pad_inches=0)
+			plt.clf()
 
 
 if __name__ == "__main__":
